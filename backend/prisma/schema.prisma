@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  LIBRARIAN
+}
+
+enum ItemType {
+  BOOK
+  MAGAZINE
+  SUPPORT_MATERIAL
+}
+
+enum MovementType {
+  ENTRY
+  EXIT
+  LOAN
+  RETURN
+  ADJUSTMENT
+  LOSS
+}
+
+enum LoanStatus {
+  OPEN
+  RETURNED
+  LATE
+  CANCELLED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         UserRole   @default(LIBRARIAN)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  movements    Movement[]
+  loansCreated Loan[]     @relation("LoanCreatedBy")
+
+  @@map("users")
+}
+
+model Member {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?  @unique
+  phone       String?
+  document    String?  @unique
+  address     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  loans       Loan[]
+
+  @@index([name])
+  @@map("members")
+}
+
+model Item {
+  id               String       @id @default(cuid())
+  code             String       @unique
+  title            String
+  subtitle         String?
+  type             ItemType
+  description      String?
+  author           String?
+  publisher        String?
+  isbn             String?      @unique
+  issn             String?      @unique
+  edition          String?
+  publicationYear  Int?
+  language         String?
+  shelfLocation    String?
+  minimumQuantity  Int          @default(1)
+  currentQuantity  Int          @default(0)
+  isActive         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  movements        Movement[]
+  loans            Loan[]
+
+  @@index([title])
+  @@index([type])
+  @@index([currentQuantity, minimumQuantity])
+  @@map("items")
+}
+
+model Movement {
+  id               String       @id @default(cuid())
+  itemId           String
+  userId           String
+  type             MovementType
+  quantity         Int
+  previousQuantity Int
+  newQuantity      Int
+  reason           String?
+  notes            String?
+  createdAt        DateTime     @default(now())
+  item             Item         @relation(fields: [itemId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user             User         @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([itemId, createdAt])
+  @@index([type, createdAt])
+  @@map("movements")
+}
+
+model Loan {
+  id             String     @id @default(cuid())
+  itemId         String
+  memberId       String
+  createdById    String
+  quantity       Int        @default(1)
+  loanDate       DateTime   @default(now())
+  dueDate        DateTime
+  returnDate     DateTime?
+  status         LoanStatus @default(OPEN)
+  notes          String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  item           Item       @relation(fields: [itemId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  member         Member     @relation(fields: [memberId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdBy      User       @relation("LoanCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([itemId, status])
+  @@index([memberId, status])
+  @@index([dueDate, status])
+  @@map("loans")
+}

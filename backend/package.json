@@ -1,0 +1,38 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API REST para sistema de biblioteca com Prisma, Neon e JWT.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "db:seed": "node prisma/seed.js",
+    "db:test": "node src/main.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "latest",
+    "@prisma/adapter-neon": "latest",
+    "@prisma/client": "latest",
+    "bcryptjs": "latest",
+    "cors": "latest",
+    "dotenv": "latest",
+    "exceljs": "^4.4.0",
+    "express": "latest",
+    "helmet": "latest",
+    "jsonwebtoken": "latest",
+    "morgan": "latest",
+    "pdfkit": "^0.18.0",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "prisma": "latest"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}
