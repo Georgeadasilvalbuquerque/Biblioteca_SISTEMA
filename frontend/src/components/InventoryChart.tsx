@@ -1,66 +1,138 @@
 import styled from "styled-components";
 import { Card } from "./Card";
 import { Text } from "./Text";
-import { useMemo, useState } from "react";
 
 const Wrapper = styled(Card)`
   padding: 18px;
 `;
 
-const Bars = styled.div`
-  margin-top: 14px;
-  height: 240px;
+const DonutContainer = styled.div`
+  margin: 20px auto 16px;
+  width: 240px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(12, minmax(10px, 1fr));
-  align-items: end;
-  gap: 8px;
+  place-items: center;
 `;
 
-const Bar = styled.div<{ value: number }>`
-  background: linear-gradient(180deg, #66c9ff 0%, #4f7cff 100%);
-  border-radius: 8px 8px 4px 4px;
-  min-height: 18px;
-  height: ${({ value }) => `${value}%`};
+const DonutRing = styled.div<{
+  availablePercent: number;
+  rentedPercent: number;
+  overduePercent: number;
+}>`
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: ${({ availablePercent, rentedPercent, overduePercent }) =>
+    `conic-gradient(
+      #166be0 0 ${availablePercent}%,
+      #f6cc4f ${availablePercent}% ${availablePercent + rentedPercent}%,
+      #f4564c ${availablePercent + rentedPercent}% ${availablePercent + rentedPercent + overduePercent}%
+    )`};
 `;
 
-const Tooltip = styled(Text)`
-  margin-top: 8px;
+const DonutHole = styled.div`
+  position: absolute;
+  width: 72%;
+  height: 72%;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+const Legend = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+`;
+
+const LegendItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+`;
+
+const IconBadge = styled.div<{ tone: "available" | "rented" | "overdue" }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: #ffffff;
+  background: ${({ tone }) =>
+    tone === "available" ? "#166be0" : tone === "rented" ? "#f6cc4f" : "#f4564c"};
+`;
+
+const ValueText = styled(Text)`
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 700;
 `;
 
 interface InventoryChartProps {
-  values: number[];
-  labels?: string[];
+  values: {
+    available: number;
+    rented: number;
+    overdue: number;
+  };
 }
 
-export function InventoryChart({ values, labels = [] }: InventoryChartProps) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const safeLabels = useMemo(
-    () => values.map((_, index) => labels[index] || `Periodo ${index + 1}`),
-    [labels, values]
-  );
+export function InventoryChart({ values }: InventoryChartProps) {
+  const total = Math.max(values.available + values.rented + values.overdue, 1);
+  const availablePercent = Math.round((values.available / total) * 100);
+  const rentedPercent = Math.round((values.rented / total) * 100);
+  const overduePercent = Math.max(0, 100 - availablePercent - rentedPercent);
 
   return (
     <Wrapper>
-      <Text variant="subtitle">Fluxo de movimentacoes</Text>
+      <Text variant="subtitle">Status do acervo</Text>
       <Text variant="caption" color="#6f7c9b">
-        Entradas e saidas consolidadas por periodo.
+        Visao geral de livros disponiveis, alugados e em atraso.
       </Text>
-      <Bars>
-        {values.map((value, index) => (
-          <Bar
-            key={`${value}-${index}`}
-            value={value}
-            onMouseEnter={() => setHoveredIndex(index)}
-            onMouseLeave={() => setHoveredIndex(null)}
-            title={`${safeLabels[index]}: ${Math.round(value)}`}
-          />
-        ))}
-      </Bars>
-      {hoveredIndex !== null && (
-        <Tooltip variant="caption" color="#6f7c9b">
-          {safeLabels[hoveredIndex]} - intensidade {Math.round(values[hoveredIndex])}
-        </Tooltip>
-      )}
+      <DonutContainer>
+        <DonutRing
+          availablePercent={availablePercent}
+          rentedPercent={rentedPercent}
+          overduePercent={overduePercent}
+        />
+        <DonutHole />
+      </DonutContainer>
+
+      <Legend>
+        <LegendItem>
+          <IconBadge tone="available">L</IconBadge>
+          <Text variant="caption" color="#6f7c9b">
+            Livro disponivel
+          </Text>
+          <ValueText variant="title" color="#166be0">
+            {availablePercent}%
+          </ValueText>
+        </LegendItem>
+
+        <LegendItem>
+          <IconBadge tone="rented">A</IconBadge>
+          <Text variant="caption" color="#6f7c9b">
+            Livros alugados
+          </Text>
+          <ValueText variant="title" color="#f6cc4f">
+            {rentedPercent}%
+          </ValueText>
+        </LegendItem>
+
+        <LegendItem>
+          <IconBadge tone="overdue">!</IconBadge>
+          <Text variant="caption" color="#6f7c9b">
+            Livros em atrasos
+          </Text>
+          <ValueText variant="title" color="#f4564c">
+            {overduePercent}%
+          </ValueText>
+        </LegendItem>
+      </Legend>
     </Wrapper>
   );
 }

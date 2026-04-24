@@ -7,7 +7,7 @@ import { ActivityTable } from "../components/ActivityTable";
 import { Text } from "../components/Text";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
-import { api, ensureToken, exportEntity, fetchDashboardSummary } from "../services/api";
+import { api, ensureToken, exportEntity, fetchDashboardSummary, fetchLoans } from "../services/api";
 import { PageLayout } from "../components/PageLayout";
 
 const SummaryGrid = styled.div`
@@ -59,13 +59,17 @@ export default function Dashboard() {
   const [summaryData, setSummaryData] = useState<
     Array<{ title: string; value: string; delta: string; positive: boolean }>
   >([]);
-  const [movementSeries, setMovementSeries] = useState<number[]>([]);
   const [lowStockItems, setLowStockItems] = useState<
     Array<{ code: string; title: string; qty: number; min: number }>
   >([]);
   const [activityRows, setActivityRows] = useState<
     Array<{ date: string; type: string; item: string; qty: number }>
   >([]);
+  const [collectionStatus, setCollectionStatus] = useState({
+    available: 0,
+    rented: 0,
+    overdue: 0
+  });
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState("admin@biblioteca.com");
   const [password, setPassword] = useState("admin123");
@@ -83,6 +87,7 @@ export default function Dashboard() {
           setToken(authToken);
         }
         const data = await fetchDashboardSummary(authToken);
+        const loans = await fetchLoans(authToken);
 
         setSummaryData([
           {
@@ -129,9 +134,11 @@ export default function Dashboard() {
           }))
         );
 
-        const recentQuantities = data.recentMovements.slice(0, 12).map((m) => m.quantity);
-        const maxQuantity = Math.max(...recentQuantities, 1);
-        setMovementSeries(recentQuantities.map((qty) => Math.max(18, (qty / maxQuantity) * 100)));
+        setCollectionStatus({
+          available: data.cards.availableNow,
+          rented: loans.filter((loan) => loan.status === "OPEN").length,
+          overdue: loans.filter((loan) => loan.status === "LATE").length
+        });
       } catch {
         setError(
           "Nao foi possivel autenticar automaticamente. Entre com um usuario valido para carregar os dados."
@@ -163,13 +170,6 @@ export default function Dashboard() {
     await exportEntity(token, "movements", format);
   }
 
-  const stableSeries = useMemo(() => {
-    if (movementSeries.length === 0) {
-      return [28, 36, 40, 52, 48, 61, 55, 67, 58, 46, 62, 70];
-    }
-    return movementSeries;
-  }, [movementSeries]);
-
   const filteredActivities = useMemo(
     () =>
       activityRows.filter((row) => {
@@ -181,11 +181,14 @@ export default function Dashboard() {
     [activityRows, period, search]
   );
 
-  const chartValues = useMemo(() => {
-    if (period === "all") return stableSeries;
-    const factor = period === "entry" ? 1 : 0.75;
-    return stableSeries.map((value) => value * factor);
-  }, [period, stableSeries]);
+  const chartValues = useMemo(
+    () => ({
+      available: collectionStatus.available,
+      rented: collectionStatus.rented,
+      overdue: collectionStatus.overdue
+    }),
+    [collectionStatus]
+  );
 
   return (
     <PageLayout
