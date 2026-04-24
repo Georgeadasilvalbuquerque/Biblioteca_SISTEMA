@@ -1,62 +1,99 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
-import { api } from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { useLocation, useNavigate, Navigate } from "react-router-dom";
+import { Text } from "../components/Text";
+import { Input } from "../components/Input";
+import { Button } from "../components/Button";
+import {
+  LoginBgImage,
+  LoginBgOverlay,
+  LoginShell,
+  LoginCard,
+  LoginField,
+  LoginErrorText,
+  LoginHead,
+  LoginSubmitRow
+} from "../components/LoginLayout";
+import { getStoredToken, loginRequest, setStoredToken } from "../services/api";
 
-
+type LocationState = { from?: { pathname?: string } };
 
 export default function Login() {
-  const [email, setEmail] = useState<string>("");
-  const [senha, setSenha] = useState<string>("");
-  const [erro, setErro] = useState<string>("");
-
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as LocationState | null)?.from?.pathname || "/";
 
-  async function handleLogin(e: FormEvent<HTMLFormElement>) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-
-    if (!email || !senha) {
-      setErro("Preencha todos os campos");
-      return;
-    }
-
+    setError(null);
+    setLoading(true);
     try {
-      const res = await api.post("/login", {
-        email,
-        senha
-      });
-
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("nome", res.data.nome);
-
-      navigate("/home");
-
+      const result = await loginRequest({ email: email.trim(), password });
+      setStoredToken(result.token);
+      navigate(from, { replace: true });
     } catch {
-      setErro("Email ou senha inválidos");
+      setError("E-mail ou senha invalidos. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
   }
 
-
+  if (getStoredToken()) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
-    <form onSubmit={handleLogin}>
-      <h2>Login</h2>
+    <LoginShell>
+      <LoginBgImage aria-hidden />
+      <LoginBgOverlay aria-hidden />
+      <LoginCard as="form" onSubmit={handleSubmit}>
+        <LoginHead>
+          <Text variant="title" color="#0f1f4a">
+            Biblioteca
+          </Text>
+          <Text variant="caption" color="#6f7c9b">
+            Entre com seu e-mail e senha para acessar o sistema.
+          </Text>
+        </LoginHead>
 
-      <input
-        type="email"
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        {error && <LoginErrorText role="alert">{error}</LoginErrorText>}
 
-      <input
-        type="password"
-        placeholder="Senha"
-        onChange={(e) => setSenha(e.target.value)}
-      />
+        <LoginField>
+          <Text variant="caption">E-mail</Text>
+          <Input
+            type="email"
+            name="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="seu@email.com"
+            required
+          />
+        </LoginField>
 
-      <button type="submit">Entrar</button>
+        <LoginField>
+          <Text variant="caption">Senha</Text>
+          <Input
+            type="password"
+            name="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Sua senha"
+            required
+          />
+        </LoginField>
 
-      {erro && <p>{erro}</p>}
-    </form>
+        <LoginSubmitRow>
+          <Button type="submit" disabled={loading} style={{ width: "100%" }}>
+            {loading ? "Entrando..." : "Entrar"}
+          </Button>
+        </LoginSubmitRow>
+      </LoginCard>
+    </LoginShell>
   );
 }

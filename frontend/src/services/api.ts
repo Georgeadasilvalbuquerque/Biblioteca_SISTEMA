@@ -102,19 +102,19 @@ export function setStoredToken(token: string) {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
-async function loginWithDefaultAdmin() {
-  const email = import.meta.env.VITE_ADMIN_EMAIL || "admin@biblioteca.com";
-  const password = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
-  const response = await api.post<ApiEnvelope<LoginResult>>("/auth/login", { email, password });
+export function clearStoredToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+export async function loginRequest(payload: LoginPayload) {
+  const response = await api.post<ApiEnvelope<LoginResult>>("/auth/login", payload);
   return response.data.data;
 }
 
 export async function ensureToken() {
   const existing = getStoredToken();
   if (existing) return existing;
-  const auth = await loginWithDefaultAdmin();
-  setStoredToken(auth.token);
-  return auth.token;
+  throw new Error("NAO_AUTENTICADO");
 }
 
 export function authHeaders(token: string) {
@@ -138,6 +138,24 @@ export async function fetchItems(token: string, search = "") {
 
 export async function createItem(token: string, payload: Partial<Item> & { code: string; title: string; type: ItemType }) {
   const response = await api.post<ApiEnvelope<Item>>("/items", payload, {
+    headers: authHeaders(token)
+  });
+  return response.data.data;
+}
+
+export async function updateItem(
+  token: string,
+  id: string,
+  payload: Partial<Item> & { code?: string; title?: string; type?: ItemType }
+) {
+  const response = await api.patch<ApiEnvelope<Item>>(`/items/${id}`, payload, {
+    headers: authHeaders(token)
+  });
+  return response.data.data;
+}
+
+export async function deleteItem(token: string, id: string) {
+  const response = await api.delete<ApiEnvelope<Item>>(`/items/${id}`, {
     headers: authHeaders(token)
   });
   return response.data.data;

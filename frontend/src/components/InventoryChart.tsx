@@ -17,18 +17,18 @@ const DonutContainer = styled.div`
 `;
 
 const DonutRing = styled.div<{
-  availablePercent: number;
-  rentedPercent: number;
-  overduePercent: number;
+  $availablePercent: number;
+  $rentedPercent: number;
+  $overduePercent: number;
 }>`
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: ${({ availablePercent, rentedPercent, overduePercent }) =>
+  background: ${({ $availablePercent, $rentedPercent, $overduePercent }) =>
     `conic-gradient(
-      #166be0 0 ${availablePercent}%,
-      #f6cc4f ${availablePercent}% ${availablePercent + rentedPercent}%,
-      #f4564c ${availablePercent + rentedPercent}% ${availablePercent + rentedPercent + overduePercent}%
+      #166be0 0 ${$availablePercent}%,
+      #f6cc4f ${$availablePercent}% ${$availablePercent + $rentedPercent}%,
+      #f4564c ${$availablePercent + $rentedPercent}% ${$availablePercent + $rentedPercent + $overduePercent}%
     )`};
 `;
 
@@ -55,16 +55,16 @@ const LegendItem = styled.div`
   text-align: center;
 `;
 
-const IconBadge = styled.div<{ tone: "available" | "rented" | "overdue" }>`
+const IconBadge = styled.div<{ $tone: "available" | "rented" | "overdue" }>`
   width: 24px;
   height: 24px;
   border-radius: 6px;
   display: grid;
   place-items: center;
-  font-size: 12px;
+  font-size: 13px;
   color: #ffffff;
-  background: ${({ tone }) =>
-    tone === "available" ? "#166be0" : tone === "rented" ? "#f6cc4f" : "#f4564c"};
+  background: ${({ $tone }) =>
+    $tone === "available" ? "#166be0" : $tone === "rented" ? "#f6cc4f" : "#f4564c"};
 `;
 
 const ValueText = styled(Text)`
@@ -95,16 +95,18 @@ export function InventoryChart({ values }: InventoryChartProps) {
       </Text>
       <DonutContainer>
         <DonutRing
-          availablePercent={availablePercent}
-          rentedPercent={rentedPercent}
-          overduePercent={overduePercent}
+          $availablePercent={availablePercent}
+          $rentedPercent={rentedPercent}
+          $overduePercent={overduePercent}
         />
         <DonutHole />
       </DonutContainer>
 
       <Legend>
         <LegendItem>
-          <IconBadge tone="available">L</IconBadge>
+          <IconBadge $tone="available">
+            <i className="bi bi-book" />
+          </IconBadge>
           <Text variant="caption" color="#6f7c9b">
             Livro disponivel
           </Text>
@@ -114,7 +116,9 @@ export function InventoryChart({ values }: InventoryChartProps) {
         </LegendItem>
 
         <LegendItem>
-          <IconBadge tone="rented">A</IconBadge>
+          <IconBadge $tone="rented">
+            <i className="bi bi-journal-check" />
+          </IconBadge>
           <Text variant="caption" color="#6f7c9b">
             Livros alugados
           </Text>
@@ -124,7 +128,9 @@ export function InventoryChart({ values }: InventoryChartProps) {
         </LegendItem>
 
         <LegendItem>
-          <IconBadge tone="overdue">!</IconBadge>
+          <IconBadge $tone="overdue">
+            <i className="bi bi-exclamation-triangle" />
+          </IconBadge>
           <Text variant="caption" color="#6f7c9b">
             Livros em atrasos
           </Text>

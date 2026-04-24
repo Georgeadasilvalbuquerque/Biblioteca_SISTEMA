@@ -54,8 +54,8 @@ router.get(
   "/",
   validate(listSchema),
   asyncHandler(async (req, res) => {
-    const page = req.query.page || 1;
-    const pageSize = req.query.pageSize || 20;
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 20;
     const { search, isActive } = req.query;
 
     const where = {

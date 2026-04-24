@@ -31,6 +31,8 @@ interface PageLayoutProps {
   onExportClick?: () => void;
   onPrimaryClick?: () => void;
   primaryLabel?: string;
+  primaryIconClass?: string;
+  primaryDisabled?: boolean;
   placeholder?: string;
   children: ReactNode;
 }
@@ -41,6 +43,8 @@ export function PageLayout({
   onExportClick,
   onPrimaryClick,
   primaryLabel,
+  primaryIconClass,
+  primaryDisabled,
   placeholder,
   children
 }: PageLayoutProps) {
@@ -54,6 +58,8 @@ export function PageLayout({
           onExportClick={onExportClick}
           onPrimaryClick={onPrimaryClick}
           primaryLabel={primaryLabel}
+          primaryIconClass={primaryIconClass}
+          primaryDisabled={primaryDisabled}
           placeholder={placeholder}
         />
         {children}

@@ -51,8 +51,8 @@ router.get(
   "/",
   validate(listSchema),
   asyncHandler(async (req, res) => {
-    const page = req.query.page || 1;
-    const pageSize = req.query.pageSize || 20;
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 20;
     const { status, itemId, memberId, overdue } = req.query;
 
     const where = {
@@ -163,9 +163,13 @@ router.post(
         throw new HttpError(404, "Membro nao encontrado ou inativo");
       }
 
-      if (new Date(dueDate) <= new Date()) {
-        throw new HttpError(400, "Data de devolucao deve ser futura");
+      const due = new Date(dueDate);
+      if (Number.isNaN(due.getTime())) {
+        throw new HttpError(400, "Data de devolucao invalida");
       }
+
+      const now = new Date();
+      const initialStatus = due.getTime() < now.getTime() ? "LATE" : "OPEN";
 
       const newQuantity = item.currentQuantity - quantity;
       const updatedItem = await tx.item.update({
@@ -179,7 +183,8 @@ router.post(
           memberId: member.id,
           createdById: req.user.id,
           quantity,
-          dueDate: new Date(dueDate),
+          dueDate: due,
+          status: initialStatus,
           notes: notes || null
         }
       });

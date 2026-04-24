@@ -8,8 +8,19 @@ const Wrapper = styled(Card)`
   gap: 8px;
 `;
 
-const Delta = styled(Text)<{ positive: boolean }>`
-  color: ${({ positive, theme }) => (positive ? theme.colors.success : theme.colors.danger)};
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+`;
+
+const CardIcon = styled.i`
+  color: ${({ theme }) => theme.colors.primary};
+`;
+
+const Delta = styled(Text)<{ $positive: boolean }>`
+  color: ${({ $positive, theme }) => ($positive ? theme.colors.success : theme.colors.danger)};
   font-weight: 600;
 `;
 
@@ -21,13 +32,23 @@ interface SummaryCardProps {
 }
 
 export function SummaryCard({ title, value, delta, positive }: SummaryCardProps) {
+  const iconByTitle: Record<string, string> = {
+    "Itens cadastrados": "bi bi-book",
+    "Entradas (mes)": "bi bi-box-arrow-in-down",
+    "Saidas (mes)": "bi bi-box-arrow-up",
+    "Disponiveis agora": "bi bi-journal-check"
+  };
+
   return (
     <Wrapper>
-      <Text variant="caption" color="#6f7c9b">
-        {title}
-      </Text>
+      <Header>
+        <Text variant="caption" color="#6f7c9b">
+          {title}
+        </Text>
+        <CardIcon className={iconByTitle[title] || "bi bi-circle"} />
+      </Header>
       <Text variant="title">{value}</Text>
-      <Delta variant="caption" positive={positive}>
+      <Delta variant="caption" $positive={positive}>
         {delta}
       </Delta>
     </Wrapper>

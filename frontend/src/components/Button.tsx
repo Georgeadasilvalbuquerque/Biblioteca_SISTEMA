@@ -4,7 +4,9 @@ interface ButtonProps {
   variant?: "primary" | "ghost";
 }
 
-export const Button = styled.button<ButtonProps>`
+export const Button = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== "variant"
+})<ButtonProps>`
   border: none;
   border-radius: ${({ theme }) => theme.radius.sm};
   padding: 10px 16px;
@@ -17,11 +19,13 @@ export const Button = styled.button<ButtonProps>`
       ? `
         background: ${theme.colors.primary};
         color: #fff;
-        &:hover { opacity: 0.92; }
+        &:hover:not(:disabled) { opacity: 0.92; }
+        &:disabled { opacity: 0.5; cursor: not-allowed; }
       `
       : `
         background: ${theme.colors.primarySoft};
         color: ${theme.colors.primary};
-        &:hover { filter: brightness(0.98); }
+        &:hover:not(:disabled) { filter: brightness(0.98); }
+        &:disabled { opacity: 0.5; cursor: not-allowed; }
       `}
 `;

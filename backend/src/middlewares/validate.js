@@ -4,13 +4,16 @@ function validate(schemas) {
   return function validateMiddleware(req, _res, next) {
     try {
       if (schemas.body) {
-        req.body = schemas.body.parse(req.body);
+        const parsedBody = schemas.body.parse(req.body);
+        req.body = parsedBody;
       }
       if (schemas.params) {
-        req.params = schemas.params.parse(req.params);
+        const parsedParams = schemas.params.parse(req.params);
+        Object.assign(req.params, parsedParams);
       }
       if (schemas.query) {
-        req.query = schemas.query.parse(req.query);
+        const parsedQuery = schemas.query.parse(req.query);
+        Object.assign(req.query, parsedQuery);
       }
       return next();
     } catch (err) {

@@ -14,7 +14,9 @@ const sizeByVariant: Record<TextVariant, string> = {
   caption: "0.78rem",
 };
 
-export const Text = styled.p<TextProps>`
+export const Text = styled.p.withConfig({
+  shouldForwardProp: (prop) => prop !== "variant" && prop !== "color"
+})<TextProps>`
   font-size: ${({ variant = "body" }) => sizeByVariant[variant]};
   color: ${({ color, theme }) => color ?? theme.colors.text};
   line-height: 1.45;

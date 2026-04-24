@@ -8,6 +8,8 @@ interface TopbarProps {
   onExportClick?: () => void;
   onPrimaryClick?: () => void;
   primaryLabel?: string;
+  primaryIconClass?: string;
+  primaryDisabled?: boolean;
   placeholder?: string;
 }
 
@@ -28,12 +30,20 @@ const Actions = styled.div`
   justify-content: flex-end;
 `;
 
+const ButtonContent = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+`;
+
 export function Topbar({
   search,
   onSearchChange,
   onExportClick,
   onPrimaryClick,
   primaryLabel = "Novo item",
+  primaryIconClass = "bi bi-plus-circle",
+  primaryDisabled,
   placeholder = "Pesquisar item, codigo, autor..."
 }: TopbarProps) {
   return (
@@ -44,10 +54,22 @@ export function Topbar({
         onChange={(event) => onSearchChange(event.target.value)}
       />
       <Actions>
-        <Button variant="ghost" onClick={onExportClick}>
-          Exportar
-        </Button>
-        <Button onClick={onPrimaryClick}>{primaryLabel}</Button>
+        {onExportClick != null ? (
+          <Button variant="ghost" onClick={onExportClick} type="button">
+            <ButtonContent>
+              <i className="bi bi-download" />
+              Exportar
+            </ButtonContent>
+          </Button>
+        ) : null}
+        {onPrimaryClick != null ? (
+          <Button onClick={onPrimaryClick} type="button" disabled={primaryDisabled}>
+            <ButtonContent>
+              <i className={primaryIconClass} />
+              {primaryLabel}
+            </ButtonContent>
+          </Button>
+        ) : null}
       </Actions>
     </Wrapper>
   );

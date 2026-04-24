@@ -17,7 +17,7 @@
   "dependencies": {
     "@neondatabase/serverless": "latest",
     "@prisma/adapter-neon": "latest",
-    "@prisma/client": "latest",
+    "@prisma/client": "^7.8.0",
     "bcryptjs": "latest",
     "cors": "latest",
     "dotenv": "latest",
@@ -30,7 +30,7 @@
     "zod": "latest"
   },
   "devDependencies": {
-    "prisma": "latest"
+    "prisma": "^7.8.0"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

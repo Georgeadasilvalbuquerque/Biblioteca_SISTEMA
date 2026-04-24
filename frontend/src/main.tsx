@@ -4,6 +4,7 @@ import { ThemeProvider } from 'styled-components'
 import App from './App.tsx'
 import { GlobalStyle } from './styles/GlobalStyle.ts'
 import { theme } from './styles/theme.ts'
+import 'bootstrap-icons/font/bootstrap-icons.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
