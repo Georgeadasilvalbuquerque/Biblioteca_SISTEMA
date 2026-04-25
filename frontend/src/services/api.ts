@@ -5,6 +5,7 @@ export const api = axios.create({
 });
 
 const TOKEN_KEY = "book_bench_token";
+const REDIRECT_AFTER_LOGIN_KEY = "book_bench_redirect_after_login";
 
 export type UserRole = "ADMIN" | "LIBRARIAN";
 export type ItemType = "BOOK" | "MAGAZINE" | "SUPPORT_MATERIAL";
@@ -106,9 +107,35 @@ export function clearStoredToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      clearStoredToken();
+      if (typeof window !== "undefined") {
+        const isLoginRoute = window.location.pathname.startsWith("/login");
+        if (!isLoginRoute) {
+          const currentPath = `${window.location.pathname}${window.location.search}`;
+          sessionStorage.setItem(REDIRECT_AFTER_LOGIN_KEY, currentPath);
+          window.location.assign("/login");
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export async function loginRequest(payload: LoginPayload) {
   const response = await api.post<ApiEnvelope<LoginResult>>("/auth/login", payload);
   return response.data.data;
+}
+
+export function getRedirectAfterLogin() {
+  return sessionStorage.getItem(REDIRECT_AFTER_LOGIN_KEY);
+}
+
+export function clearRedirectAfterLogin() {
+  sessionStorage.removeItem(REDIRECT_AFTER_LOGIN_KEY);
 }
 
 export async function ensureToken() {

@@ -13,14 +13,22 @@ import {
   LoginHead,
   LoginSubmitRow
 } from "../components/LoginLayout";
-import { getStoredToken, loginRequest, setStoredToken } from "../services/api";
+import {
+  clearRedirectAfterLogin,
+  getRedirectAfterLogin,
+  getStoredToken,
+  loginRequest,
+  setStoredToken
+} from "../services/api";
 
 type LocationState = { from?: { pathname?: string } };
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as LocationState | null)?.from?.pathname || "/";
+  const fromState = (location.state as LocationState | null)?.from?.pathname;
+  const fromStorage = getRedirectAfterLogin();
+  const from = fromState || fromStorage || "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,6 +42,7 @@ export default function Login() {
     try {
       const result = await loginRequest({ email: email.trim(), password });
       setStoredToken(result.token);
+      clearRedirectAfterLogin();
       navigate(from, { replace: true });
     } catch {
       setError("E-mail ou senha invalidos. Tente novamente.");
@@ -43,7 +52,8 @@ export default function Login() {
   }
 
   if (getStoredToken()) {
-    return <Navigate to="/" replace />;
+    clearRedirectAfterLogin();
+    return <Navigate to={from} replace />;
   }
 
   return (
