@@ -1,5 +1,5 @@
 {
   "defaultLoanDays": 7,
-  "lowStockAlertThreshold": 4,
+  "lowStockAlertThreshold": 5,
   "allowNegativeAdjustments": false
 }
